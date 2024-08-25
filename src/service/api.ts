@@ -1,19 +1,19 @@
 import axios from 'axios';
+import { cookies } from 'next/headers'
 
 const api = axios.create({
     baseURL: 'https://candidate-assignment.neversitup.com',
     headers: {
         'Content-Type': 'application/json',
-        "Access-Control-Allow-Origin": "*"
     },
 });
 
 api.interceptors.request.use(
     (config) => {
-        if (!config.url?.includes('/users') && config.method !== "POST") {
-            const token = localStorage.getItem('token');
+        if (!config.url?.includes('/users') && !config.url?.includes('/auth/login')) {
+            const token = cookies().get('token');
             if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+                config.headers.Authorization = `Bearer ${token.value}`;
             }
         }
         return config;
@@ -26,8 +26,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && error.response.status === 401) {
-            alert('Something went wrong.')
+        let message: string;
+        if (error.config.url?.includes('/auth/login') && error.status === 401) {
+            error.message = `username or password is invalid.`;
+        } else {
+            error.message = `Something went wrong. ${error.message}`;
         }
         return Promise.reject(error);
     }

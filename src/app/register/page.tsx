@@ -4,9 +4,11 @@ import { Input } from "@nextui-org/input";
 import { Button, Link } from "@nextui-org/react";
 import { Avatar } from "@nextui-org/react";
 import { Formik, useFormik } from "formik";
+import { useRouter } from 'next/navigation'
 import * as Yup from 'yup';
 
 export default function Register() {
+    const router = useRouter()
     const validationSchema = Yup.object({
         username: Yup.string()
             .required('Username is required'),
@@ -32,7 +34,12 @@ export default function Register() {
                         }}
                         validationSchema={validationSchema}
                         onSubmit={async (values) => {
-                            await createUser(values)
+                            try {
+                                await createUser(values);
+                                router.push('/information');
+                            } catch (error: any) {
+                                alert(error.message);
+                            }
                         }}
                         validateOnChange={false}>
                         {
